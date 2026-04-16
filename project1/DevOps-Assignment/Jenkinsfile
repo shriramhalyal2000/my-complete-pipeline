@@ -11,6 +11,13 @@ pipeline{
                 }
             }
         }
+        stage(Push){
+            steps{
+                dir(..){
+                    
+                }
+            }
+        }
     }
 
 }
