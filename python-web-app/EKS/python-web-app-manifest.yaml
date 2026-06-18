@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-app-depl
+  labels:
+    app: python-webb
+    tier: frontend
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: python-webb
+  template:
+    metadata:
+      name: python-webb-app
+      labels:
+        app: python-webb # to be referenced with service
+    spec:
+      containers:
+        - name: python-app-ctnr
+          image: shriram2105/python-web-app:1.0.0
+          volumeMounts:
+            - name: configmap-mount
+              mountPath: /etc/configmap
+            - name: secrets-mount
+              mountPath: /etc/secrets
+          ports:
+            - containerPort: 8000
+          resources: # stopps nodes and pods from crashing limiting pods to access and equest more resource from cluster limiting them with threshold required cpu and memory
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+      volumes:
+        - name: configmap-mount
+          configMap:
+            name: test-cm # name of configmap files
+        - name: secrets-mount
+          secret:
+            secretName: app-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: python-app-svc
+spec:
+  selector: 
+    app: python-webb # match service with container app label for service to find pod for network 
+  type: ClusterIP
+  ports:
+    - port: 80 # service port
+      targetPort: 8000 # containerport
+      protocol: TCP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-cm
+data:
+  db-port: "3307"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secret
+  namespace: default
+type: Opaque
+data:
+  db-username: dXNlcm5hbWU=

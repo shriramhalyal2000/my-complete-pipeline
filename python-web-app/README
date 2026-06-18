@@ -1,0 +1,3 @@
+Deployment and Service files are created for kubernetes deploymet 
+servce is of Nodeport at port 30008
+label and seletors of pod template are referenced inside the service seletor to get pod service
