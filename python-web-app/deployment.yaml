@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app-depl
+  labels:
+    app: python-web-app
+    tier: task-tier
+spec:
+  # serviceName: reference service name
+  replicas: 2
+  selector:
+    matchLabels:
+      app: python-web-app
+  template:
+    metadata:
+      labels:  # reference this in service selector
+        app: python-web-app
+        tier: python-app 
+    spec:
+      containers:
+        - name: python-web-app
+          image: shriram2105/python-web-app:1.0.0
+          ports:
+            - containerPort: 8000
+          volumeMounts: # reference the vol mount inside container
+            - name: db-connection
+              mountPath: /opt
+            - name: secrests-mount
+              mountPath: /etc/secrets
+      volumes: # creates a volume with name
+        - name: db-connection
+          configMap:
+            name: test-cm
+        - name: secrests-mount
+          secrets:
+            name: test-secrets

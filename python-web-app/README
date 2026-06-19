@@ -1,0 +1,99 @@
+Deployment and Service files are created for kubernetes deploymet 
+servce is of Nodeport at port 30008
+label and seletors of pod template are referenced inside the service seletor to get pod service
+
+jenkins structure
+
+1. Library files structure
+
+(root)
++- src/                     # Standard Java/Groovy OOP classes
+|  +- com
+|     +- company
+|        +- Utilities.groovy
++- vars/                    # Global variables and custom DSL steps (Most Common)
+|  +- buildDocker.groovy    # Called in pipeline as: buildDocker()
+|  +- buildDocker.txt       # Optional documentation for the step
++- resources/               # Static non-Groovy helper data (JSON, XML, templates)
+
+2. Syntax Definig steps
+
+// File: vars/sayHello.groovy
+def call(String name) {
+    echo "Hello, ${name}!"
+}
+
+Global steps are defined in the vars/ directory. 
+The filename becomes the step name inside your pipeline. 
+You must implement a call method inside the file.
+
+Adavanced Map-Argument  syntax(vars/buildDocker.groovy)
+
+// File: vars/buildDocker.groovy
+def call(Map config = [:]) {
+    // Access passed variables with default fallbacks
+    def imageName = config.get('imageName', 'my-default-app')
+    def tag = config.get('tag', 'latest')
+
+    sh "docker build -t ${imageName}:${tag} ."
+}
+
+Once the library is configured in Jenkins (via Manage Jenkins -> System -> Global Pipeline Libraries), 
+you use the global variables inside a Declarative or Scripted pipeline.Importing Specific VersionsDefault version: @Library('my-shared-library') _Specific Branch/Tag: @Library('my-shared-library@production') _Multiple Libraries: @Library(['lib-one', 'lib-two@1.2']) _
+Example Implementationgroovy@Library('my-shared-library@main') _
+
+pipeline {
+    agent any
+    stages {
+        stage('Greet') {
+            steps {
+                // Calling the simple string step
+                sayHello('Developer') 
+            }
+        }
+        stage('Build') {
+            steps {
+                // Calling the map-argument step
+                buildDocker(
+                    imageName: 'frontend-service',
+                    tag: 'v1.0.0'
+                )
+            }
+        }
+    }
+}
+
+4. Syntax for Advanced Class Libraries (src/)If you prefer standard Object-Oriented Programming (OOP) over basic functional scripts, place code inside the src/ directory.Defining a Class (src/com/company/Helper.groovy)groovypackage com.company
+import java.io.Serializable
+
+// Classes used in pipelines must implement Serializable
+class Helper implements Serializable {
+    def steps
+    
+    // Pass pipeline context ('this') to access native steps like echo/sh
+    Helper(steps) {
+        this.steps = steps
+    }
+
+    def performCleanup() {
+        steps.echo "Cleaning up workspace environment..."
+        steps.cleanWs()
+    }
+
+Instantiating the Class (Jenkinsfile)groovy@Library('my-shared-library') _
+import com.company.Helper
+
+pipeline {
+    agent any
+    stages {
+        stage('Clean') {
+            steps {
+                script {
+                    // Instantiate class and pass 'this' as the pipeline context
+                    def utils = new Helper(this)
+                    utils.performCleanup()
+                }
+            }
+        }
+    }
+}

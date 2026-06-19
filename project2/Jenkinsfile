@@ -1,0 +1,87 @@
+pipeline{
+  agent any
+  environment{
+    DOCKER_USER="shriram2105"
+  }
+  stages{
+    stage('Checkout'){
+      steps{
+        checkout scm
+      }
+    }
+    stage("Building Frontend"){
+      steps{
+        dir('app/NoteBook_FrontEnd'){
+          sh "docker build -t ${DOCKER_USER}/notebook-frontend:latest ."
+        }
+      }
+    }
+    stage("Building"){
+      steps{
+        dir("app/NoteBook_BackEnd"){
+          sh "docker build -t ${DOCKER_USER}/notebook-backend:latest ."
+        }
+      }
+    }
+    stage("Pushing images to Hub"){
+      steps{
+        withCredentials([usernamePassword(
+          credentialsId: "docker-userPass",
+          usernameVariable: 'USER',
+          passwordVariable: 'PASS'
+        )]){
+          sh '''
+            echo "$PASS" | docker login -u "$USER" --password-stdin
+            docker push ${DOCKER_USER}/notebook-frontend:latest
+            docker push ${DOCKER_USER}/notebook-backend:latest
+          '''
+        }
+      }
+    }
+    stage('Deploying Locally'){
+      steps{
+        script{
+          dir('app'){
+            sh '''
+              docker-compose down || true
+
+              docker-compose rm -rf || true
+
+              docker-compose pull || true
+
+              docker-compose up -d 
+
+              docker-compose ps
+              docker-compose logs --tail=50
+            '''
+          }
+        }
+      }
+    }
+  }
+  post{
+    always {
+        echo"build finished with status: ${currentBuild.currentResult}"
+        sh "docker logout || true"
+    }
+    success{
+      echo "Build was successful. Docker image pushed to the registry."
+      echo " Application deployed with docker compose ."
+      sh '''
+        echo "=== Application URLs ==="
+        echo "Frontend: http://localhost:3000"
+        echo "Backend:   http://localhost:5000"
+        echo ""
+        echo "=== Running Containers ==="
+        docker-compose -f app/docker-compose.yaml ps
+      '''
+    }
+    failure{
+       echo "Build failed. Please check the logs for more details."
+       sh '''
+        echo "=== Docker Compose Logs ==="
+        docker-compose -f app/docker-compose.yaml logs --tail=100 || true
+      '''
+    }
+  }
+}
