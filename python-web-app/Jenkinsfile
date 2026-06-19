@@ -15,9 +15,13 @@ pipeline{
         }
         stage(){
             dir(){
-                withCredentials{
-                    
-                }
+                withCredentials(
+                    [usernmaePassword(
+                        credentialId:
+                        usernameVariable:
+                        passwordVariable:
+                        )]
+                )
             }
         }
     }
