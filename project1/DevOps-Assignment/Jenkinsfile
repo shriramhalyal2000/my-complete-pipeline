@@ -2,20 +2,44 @@ pipeline{
     agent(docker)
     scm checkout
     stages{
-        stage(build){
+        stage(build backend){
             steps{
                 dir(./backend){
                     sh '''
-                    docker build -t 
+                    docker build -t backend .
                     '''
                 }
             }
         }
-        stage(Push){
+        stage(build frontend){
             steps{
-                dir(..){
-                    
+                dir(../frontend){
+                    sh '''
+                    docker build -t frontend .
+                    '''
                 }
+            }
+        }
+        stage(tag images){
+            steps{
+                sh '''
+                docker tag frontend shriram2105/forntend:1.0.0
+                docker tag backend shriram2105/backend:1.0.0
+                '''
+            }
+        }
+        stage(push){
+            steps{
+                withCredentials{
+
+                }
+            }
+        }
+        stage(Deploy){
+            steps{
+                sh '''
+                docker compose up -d
+                '''
             }
         }
     }

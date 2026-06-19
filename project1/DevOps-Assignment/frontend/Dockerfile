@@ -1,4 +1,4 @@
-FROM python:18-alpine AS builder
+FROM node:18-alpine AS builder
 WORKDIR /app
 #install dependencies first
 COPY package.json yarn.lock* package-lock.json* ./
