@@ -1,0 +1,24 @@
+pipeline{
+    agents{
+        label "any"
+    }
+    Enviornment{
+
+    }
+    stages{
+        stage (scm checkout){
+            dir(){
+                steps{
+
+                }
+            }
+        }
+        stage(){
+            dir(){
+                withCredentials{
+                    
+                }
+            }
+        }
+    }
+}
