@@ -3,13 +3,22 @@ pipeline{
         label "any"
     }
     Enviornment{
-
+        DOCKERUSER = "shriram2105"
+        IMAGENAME  = "python-web-app"
+        IMAGETAG   = "1.0.1"
     }
     stages{
         stage (scm checkout){
             dir(){
                 steps{
 
+                }
+            }
+        }
+        stage("Docker build"){
+            dir(){
+                steps{
+                    
                 }
             }
         }
