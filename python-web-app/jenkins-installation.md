@@ -68,3 +68,5 @@ Jenkins installation on AWS-EC2
     Kind: Aws creds
     Access key, Secret Acces key, Description, region, *.pem key, username: ec2-user or hostname add public key and private key in kid: ssh with username and private key
 
+
+you can take this think up a notch by launching this instance via terraform for provisioning, monitoring, modification and destruction of cloud infra more efficiently
